@@ -5,7 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 <meta name="theme-color" content="#1a1d29">
 <title>Obra · Controle de Gastos</title>
-<link rel="manifest" href='data:application/manifest+json,{"name":"Controle de Obra","short_name":"Obra","start_url":".","display":"standalone","background_color":"%231a1d29","theme_color":"%231a1d29","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'22\' fill=\'%231a1d29\'/%3E%3Cpath d=\'M25 62 L50 30 L75 62 Z\' fill=\'none\' stroke=\'%23e8b04b\' stroke-width=\'6\' stroke-linejoin=\'round\'/%3E%3Crect x=\'34\' y=\'55\' width=\'32\' height=\'15\' fill=\'%23e8b04b\'/%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}'>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<!-- iOS: instalação e aparência ao adicionar à tela de início -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Obra">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 :root{
   --bg:#12141c; --surface:#1a1d29; --surface2:#232735; --line:#2e3345;
@@ -160,7 +167,12 @@ h1{font-family:var(--ff-disp);font-weight:700;font-size:30px;margin:2px 0 0;lett
 
 <div class="panel" id="panel-dados">
   <div class="wrap">
-    <div class="sec-t">Sincronização com Google Sheets</div>
+    <div class="sec-t">Instalar no aparelho</div>
+    <button id="btnInstall" class="btn btn-primary" style="display:none;width:100%">📲 Instalar app na tela inicial</button>
+    <div class="cfg-status off" id="iosHint" style="display:none">Para instalar no iPhone: toque no botão <b>Compartilhar</b> (quadrado com seta ↑) na barra do Safari e escolha <b>Adicionar à Tela de Início</b>.</div>
+    <div class="cfg-status off" id="installFallback">Se o botão acima não aparecer: no Chrome/Android use o menu <b>⋮ → Adicionar à tela inicial</b>; no iPhone use <b>Compartilhar → Adicionar à Tela de Início</b>.</div>
+
+    <div class="sec-t" style="margin-top:26px">Sincronização com Google Sheets</div>
     <div class="cfg-status off" id="cfgStatus"><b>Modo local</b> — os dados ficam só neste aparelho. Configure a planilha para sincronizar.</div>
     <div class="dm">
       <button id="btnConfig">⚙ Configurar planilha</button>
@@ -437,7 +449,32 @@ function dl(blob,name){const u=URL.createObjectURL(blob);const a=document.create
 $("syncBadge").onclick=()=>{document.querySelector('.tab[data-tab="dados"]').click();};
 if(syncUrl){setSync("on","Sincronizado");renderAll();fullSync(true);}else{setSync("","Local");renderAll();}
 
-if('serviceWorker' in navigator){const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
+// Registra o service worker (arquivo real, mesmo domínio) — necessário para instalar
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+}
+
+// Botão "Instalar app" (Android/Chrome/Edge): aparece quando o navegador permite
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  const b=$("btnInstall");if(b){b.style.display="block";}
+});
+const _bi=$("btnInstall");
+if(_bi){_bi.onclick=async()=>{
+  if(!deferredPrompt){toast("Use o menu do navegador → Adicionar à tela inicial");return;}
+  deferredPrompt.prompt();
+  const r=await deferredPrompt.userChoice;
+  deferredPrompt=null;_bi.style.display="none";
+  if(r&&r.outcome==="accepted")toast("App instalado!");
+};}
+window.addEventListener('appinstalled',()=>{const b=$("btnInstall");if(b)b.style.display="none";toast("App instalado na tela inicial");});
+// Detecta iOS para mostrar dica manual (iPhone não tem botão automático)
+(function(){
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone=window.navigator.standalone||window.matchMedia('(display-mode: standalone)').matches;
+  if(isIOS&&!standalone){const t=$("iosHint");if(t)t.style.display="block";}
+})();
 </script>
 </body>
 </html>
