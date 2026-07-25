@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1d29">
+<title>Obra · Controle de Gastos</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"Controle de Obra","short_name":"Obra","start_url":".","display":"standalone","background_color":"%231a1d29","theme_color":"%231a1d29","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'22\' fill=\'%231a1d29\'/%3E%3Cpath d=\'M25 62 L50 30 L75 62 Z\' fill=\'none\' stroke=\'%23e8b04b\' stroke-width=\'6\' stroke-linejoin=\'round\'/%3E%3Crect x=\'34\' y=\'55\' width=\'32\' height=\'15\' fill=\'%23e8b04b\'/%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}'>
+<style>
+:root{
+  --bg:#12141c; --surface:#1a1d29; --surface2:#232735; --line:#2e3345;
+  --ink:#eef0f6; --ink-dim:#9aa1b4; --ink-faint:#646b80;
+  --gold:#e8b04b; --gold-dim:#a9822f;
+  --blue:#5b8def; --green:#4fbf8b; --red:#e26d6d;
+  --r:14px; --r-sm:9px;
+  --ff-disp:'Barlow Condensed',-apple-system,system-ui,sans-serif;
+  --ff:'Inter',-apple-system,system-ui,sans-serif;
+  --ff-num:'JetBrains Mono','Roboto Mono',ui-monospace,monospace;
+}
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:var(--ff);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.4;padding-bottom:88px;padding-top:env(safe-area-inset-top);overscroll-behavior-y:contain}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+header{padding:22px 16px 14px;max-width:640px;margin:0 auto}
+.eyebrow{font-family:var(--ff-disp);letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:var(--gold);font-weight:600}
+.hrow{display:flex;justify-content:space-between;align-items:flex-start}
+h1{font-family:var(--ff-disp);font-weight:700;font-size:30px;margin:2px 0 0;letter-spacing:.01em;line-height:1}
+.sync-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);background:var(--surface);border:1px solid var(--line);padding:5px 10px;border-radius:20px;margin-top:4px;cursor:pointer;white-space:nowrap}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-faint);flex-shrink:0}
+.sync-badge.on .sync-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sync-badge.err .sync-dot{background:var(--red)}
+.sync-badge.busy .sync-dot{background:var(--gold);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.hero{background:linear-gradient(150deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-top:16px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:radial-gradient(circle,rgba(232,176,75,.14),transparent 70%);pointer-events:none}
+.hero .lbl{font-family:var(--ff-disp);letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--ink-dim);font-weight:600}
+.hero .val{font-family:var(--ff-num);font-weight:600;font-size:34px;margin-top:4px;letter-spacing:-.02em}
+.hero .val .cents{color:var(--ink-dim);font-size:22px}
+.hero .sub{font-size:12.5px;color:var(--ink-faint);margin-top:6px;font-family:var(--ff-num)}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:4px;margin:16px 16px 0;max-width:640px;position:sticky;top:calc(env(safe-area-inset-top) + 6px);z-index:20}
+@media(min-width:672px){.tabs{margin-left:auto;margin-right:auto}}
+.tab{flex:1;text-align:center;padding:9px 4px;border-radius:var(--r-sm);font-family:var(--ff-disp);font-weight:600;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);cursor:pointer;border:none;background:none;transition:.15s}
+.tab.active{background:var(--gold);color:#1a1200}
+.panel{display:none;animation:fade .25s}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sec-t{font-family:var(--ff-disp);text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--ink-dim);font-weight:600;margin:22px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.bar-row{margin-bottom:12px}
+.bar-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+.bar-name{font-size:13.5px;font-weight:500;color:var(--ink)}
+.bar-val{font-family:var(--ff-num);font-size:13px;font-weight:500;color:var(--ink-dim);white-space:nowrap}
+.bar-track{height:7px;background:var(--surface2);border-radius:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.bar-fill.b2{background:linear-gradient(90deg,#3a6bc4,var(--blue))}
+.month-lbl{font-family:var(--ff-disp);text-transform:uppercase;letter-spacing:.1em;font-size:12.5px;color:var(--gold);font-weight:600;margin:20px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px;position:relative;cursor:pointer;transition:.12s}
+.card:active{background:var(--surface2)}
+.card.pending{border-left:3px solid var(--gold)}
+.card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card-desc{font-weight:500;font-size:14.5px;line-height:1.25}
+.card-total{font-family:var(--ff-num);font-weight:600;font-size:15px;white-space:nowrap}
+.card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.chip{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--ink-dim);font-weight:500;white-space:nowrap}
+.chip.fase{background:rgba(91,141,239,.16);color:#9dbcf5}
+.card-qty{font-family:var(--ff-num);font-size:11.5px;color:var(--ink-faint);margin-left:auto}
+.card-date{font-family:var(--ff-num);font-size:11px;color:var(--ink-faint)}
+.empty{text-align:center;padding:50px 20px;color:var(--ink-faint)}
+.empty svg{width:44px;height:44px;opacity:.4;margin-bottom:12px}
+.controls{display:flex;gap:8px;margin:14px 0 4px}
+.search{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;color:var(--ink);font-family:var(--ff);font-size:14px}
+.search::placeholder{color:var(--ink-faint)}
+.search:focus{outline:none;border-color:var(--gold-dim)}
+.selbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:0 10px;color:var(--ink);font-family:var(--ff);font-size:13px;max-width:140px}
+.selbox:focus{outline:none;border-color:var(--gold-dim)}
+.fab{position:fixed;right:calc(50% - 320px + 20px);bottom:calc(22px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;background:var(--gold);border:none;box-shadow:0 6px 20px rgba(0,0,0,.4),0 0 0 1px rgba(232,176,75,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:30;transition:.15s}
+@media(max-width:680px){.fab{right:20px}}
+.fab:active{transform:scale(.92)}
+.fab svg{width:26px;height:26px;stroke:#1a1200;stroke-width:2.5}
+.modal-bg{position:fixed;inset:0;background:rgba(6,7,11,.72);backdrop-filter:blur(3px);z-index:40;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);width:100%;max-width:640px;border-radius:20px 20px 0 0;border:1px solid var(--line);border-bottom:none;padding:8px 18px calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.grab{width:38px;height:4px;background:var(--line);border-radius:20px;margin:6px auto 14px}
+.modal h2{font-family:var(--ff-disp);font-weight:600;font-size:22px;margin:0 0 16px;letter-spacing:.01em}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;color:var(--ink);font-family:var(--ff);font-size:15px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.field input.num{font-family:var(--ff-num)}
+.field textarea{font-family:var(--ff-num);font-size:12px;resize:vertical;min-height:64px;word-break:break-all}
+.row2{display:flex;gap:10px}
+.row2 .field{flex:1}
+.calc-preview{background:var(--surface2);border-radius:var(--r-sm);padding:11px 14px;margin:4px 0 16px;display:flex;justify-content:space-between;align-items:center;border:1px dashed var(--gold-dim)}
+.calc-preview .l{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-dim);font-weight:600}
+.calc-preview .v{font-family:var(--ff-num);font-weight:600;font-size:19px;color:var(--gold)}
+.btns{display:flex;gap:10px;margin-top:6px}
+.btn{flex:1;padding:13px;border-radius:var(--r-sm);font-family:var(--ff-disp);font-weight:600;font-size:16px;letter-spacing:.04em;text-transform:uppercase;border:none;cursor:pointer;transition:.12s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--gold);color:#1a1200}
+.btn-ghost{background:var(--surface2);color:var(--ink-dim)}
+.btn-del-full{width:100%;margin-top:12px;padding:12px;background:transparent;border:1px solid rgba(226,109,109,.35);color:var(--red);border-radius:var(--r-sm);font-family:var(--ff-disp);font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}
+.toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--line);color:var(--ink);padding:11px 18px;border-radius:30px;font-size:13.5px;font-weight:500;z-index:50;opacity:0;transition:.3s;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.4);max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.dm{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.dm button{flex:1;min-width:130px;background:var(--surface);border:1px solid var(--line);color:var(--ink-dim);padding:11px;border-radius:var(--r-sm);font-family:var(--ff);font-weight:500;font-size:13px;cursor:pointer}
+.dm button:active{background:var(--surface2)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 14px}
+.stat .n{font-family:var(--ff-num);font-weight:600;font-size:20px}
+.stat .l{font-size:11.5px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;font-weight:600}
+.hint{font-size:12px;color:var(--ink-faint);margin-top:10px;line-height:1.5}
+.cfg-status{padding:12px 14px;border-radius:var(--r-sm);font-size:13px;margin-top:6px;line-height:1.5;border:1px solid var(--line);background:var(--surface)}
+.cfg-status b{color:var(--ink)}
+.cfg-status.ok{border-color:rgba(79,191,139,.4)}
+.cfg-status.ok b{color:var(--green)}
+.cfg-status.off b{color:var(--ink-dim)}
+.pending-note{font-size:12px;color:var(--gold);margin-top:8px;font-weight:500}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Controle de Obra · 2026</div>
+  <div class="hrow">
+    <h1>Minha Obra</h1>
+    <div class="sync-badge" id="syncBadge" title="Status da sincronização"><span class="sync-dot"></span><span id="syncTxt">Local</span></div>
+  </div>
+  <div class="hero">
+    <div class="lbl">Total investido</div>
+    <div class="val" id="heroTotal">R$ 0</div>
+    <div class="sub" id="heroSub">— lançamentos</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="lanc">Lançamentos</button>
+  <button class="tab" data-tab="resumo">Resumo</button>
+  <button class="tab" data-tab="dados">Dados</button>
+</div>
+
+<div class="panel active" id="panel-lanc">
+  <div class="wrap">
+    <div class="controls">
+      <input class="search" id="search" placeholder="Buscar descrição...">
+      <select class="selbox" id="filterFase"><option value="">Todas fases</option></select>
+    </div>
+    <div id="pendingNote"></div>
+    <div id="lancList"></div>
+  </div>
+</div>
+
+<div class="panel" id="panel-resumo">
+  <div class="wrap">
+    <div class="sec-t">Gasto por fase</div>
+    <div id="byFase"></div>
+    <div class="sec-t" style="margin-top:26px">Gasto por categoria</div>
+    <div id="byCat"></div>
+  </div>
+</div>
+
+<div class="panel" id="panel-dados">
+  <div class="wrap">
+    <div class="sec-t">Sincronização com Google Sheets</div>
+    <div class="cfg-status off" id="cfgStatus"><b>Modo local</b> — os dados ficam só neste aparelho. Configure a planilha para sincronizar.</div>
+    <div class="dm">
+      <button id="btnConfig">⚙ Configurar planilha</button>
+      <button id="btnSyncNow">⟳ Sincronizar agora</button>
+    </div>
+
+    <div class="sec-t" style="margin-top:26px">Visão geral</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="n" id="stCount">0</div><div class="l">Lançamentos</div></div>
+      <div class="stat"><div class="n" id="stFases">0</div><div class="l">Fases ativas</div></div>
+      <div class="stat"><div class="n" id="stMedia">R$ 0</div><div class="l">Ticket médio</div></div>
+      <div class="stat"><div class="n" id="stMaior">R$ 0</div><div class="l">Maior gasto</div></div>
+    </div>
+
+    <div class="sec-t" style="margin-top:26px">Backup local</div>
+    <div class="dm">
+      <button id="btnExport">⬇ Exportar (CSV)</button>
+      <button id="btnBackup">💾 Backup (JSON)</button>
+      <button id="btnImport">📂 Restaurar backup</button>
+      <button id="btnReset">↺ Restaurar planilha original</button>
+    </div>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
+    <p class="hint">Com a sincronização ativa, cada mudança é enviada para sua planilha Google e o app puxa os dados de lá ao abrir. Sem conexão, as mudanças ficam pendentes (marcadas em dourado) e sobem quando você sincronizar. O backup JSON continua útil como segurança extra.</p>
+  </div>
+</div>
+
+<button class="fab" id="fabAdd" aria-label="Adicionar lançamento">
+  <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<!-- MODAL LANÇAMENTO -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="grab"></div>
+    <h2 id="modalTitle">Novo lançamento</h2>
+    <div class="field"><label>Descrição</label><input id="fDesc" placeholder="Ex: Cimento poty."></div>
+    <div class="row2">
+      <div class="field"><label>Data</label><input type="date" id="fData"></div>
+      <div class="field"><label>Unidade</label><select id="fUnid"></select></div>
+    </div>
+    <div class="field"><label>Fase da obra</label><select id="fFase"></select></div>
+    <div class="field"><label>Categoria</label><select id="fCat"></select></div>
+    <div class="row2">
+      <div class="field"><label>Quantidade</label><input class="num" id="fQtd" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label>Valor unit. (R$)</label><input class="num" id="fVU" inputmode="decimal" placeholder="0,00"></div>
+    </div>
+    <div class="calc-preview"><span class="l">Total</span><span class="v" id="calcTotal">R$ 0,00</span></div>
+    <div class="btns">
+      <button class="btn btn-ghost" id="btnCancel">Cancelar</button>
+      <button class="btn btn-primary" id="btnSave">Salvar</button>
+    </div>
+    <button class="btn-del-full" id="btnDelete" style="display:none">Excluir lançamento</button>
+  </div>
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="modal-bg" id="cfgBg">
+  <div class="modal">
+    <div class="grab"></div>
+    <h2>Configurar sincronização</h2>
+    <div class="field">
+      <label>URL do App da Web (Apps Script)</label>
+      <textarea id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec"></textarea>
+    </div>
+    <p class="hint" style="margin-top:0">Cole a URL que o Google gerou ao publicar o Apps Script (termina em <b>/exec</b>). Veja o passo a passo no guia que acompanha o app.</p>
+    <div class="btns">
+      <button class="btn btn-ghost" id="cfgCancel">Cancelar</button>
+      <button class="btn btn-primary" id="cfgSave">Salvar e testar</button>
+    </div>
+    <button class="btn-del-full" id="cfgClear" style="display:none">Desativar sincronização</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const FASES=["1. Limpeza e Preparação","2. Fundação e Alicerce","3. Estrutura (Colunas e Vigas)","4. Alvenaria (Paredes)","5. Telhado e Cobertura","6. Instalações Hidráulicas","7. Instalações Elétricas","8. Reboco e Revestimento","9. Pisos e Azulejos","10. Pintura e Acabamentos","11. Área Externa e Paisagismo"];
+const CATS=["Mão de Obra","Agregados (Areia, Pedra, Barro)","Cimento, Cal e Gesso","Ferragens (Vergalhão, Arame)","Madeiras","Alvenaria (Tijolos, Blocos)","Hidráulica (Tubos, Conexões)","Elétrica (Fios, Disjuntores)","Cobertura (Telhas, Calhas)","Acabamento (Pisos, Tintas)","Locação","Outros"];
+const UNIDS=[["m","Metro Linear"],["m²","Metro Quadrado"],["m³","Metro Cúbico"],["un","Unidade"],["pc","Pacote"],["sc","Saco"],["kg","Quilograma"],["mil","Milheiro"],["gl","Galão"],["lt","Lata"],["rlo","Rolo"],["cj","conjunto"],["vb","Verga/Barra"],["par","Par"],["car","Carrada"]];
+const SEED=[{"id":1,"data":"2026-01-16","fase":"2. Fundação e Alicerce","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1200.0},{"id":2,"data":"2026-01-16","fase":"1. Limpeza e Preparação","categoria":"Outros","descricao":"Tapume madeirit.","unid":"un","qtd":4.0,"valorUnit":70.0},{"id":3,"data":"2026-01-16","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Barro.","unid":"car","qtd":1.0,"valorUnit":400.0},{"id":4,"data":"2026-01-16","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Areia.","unid":"car","qtd":1.0,"valorUnit":400.0},{"id":5,"data":"2026-01-16","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Pedra.","unid":"car","qtd":2.0,"valorUnit":500.0},{"id":6,"data":"2026-01-17","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":44.0},{"id":7,"data":"2026-01-20","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":44.0},{"id":8,"data":"2026-01-23","fase":"2. Fundação e Alicerce","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1300.0},{"id":9,"data":"2026-01-26","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":44.0},{"id":10,"data":"2026-01-29","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":5.0,"valorUnit":44.0},{"id":11,"data":"2026-01-30","fase":"2. Fundação e Alicerce","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1500.0},{"id":12,"data":"2026-02-02","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Barro.","unid":"car","qtd":1.0,"valorUnit":400.0},{"id":13,"data":"2026-02-02","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Pedra.","unid":"car","qtd":2.0,"valorUnit":500.0},{"id":14,"data":"2026-02-03","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":41.0},{"id":15,"data":"2026-02-04","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Pedra.","unid":"car","qtd":1.0,"valorUnit":480.0},{"id":16,"data":"2026-02-06","fase":"2. Fundação e Alicerce","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1300.0},{"id":17,"data":"2026-02-09","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Pedra.","unid":"car","qtd":1.0,"valorUnit":480.0},{"id":18,"data":"2026-02-10","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":41.0},{"id":19,"data":"2026-02-12","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Pedra.","unid":"car","qtd":1.0,"valorUnit":480.0},{"id":20,"data":"2026-02-13","fase":"2. Fundação e Alicerce","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":850.0},{"id":21,"data":"2026-02-16","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":44.0},{"id":22,"data":"2026-02-18","fase":"2. Fundação e Alicerce","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Canaleta larga.","unid":"un","qtd":250.0,"valorUnit":2.0},{"id":23,"data":"2026-02-18","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Treliça 12m.","unid":"un","qtd":5.0,"valorUnit":80.0},{"id":24,"data":"2026-02-18","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Coluna 5/16, 6m.","unid":"un","qtd":8.0,"valorUnit":100.0},{"id":25,"data":"2026-02-18","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Brita 3/4.","unid":"m³","qtd":2.0,"valorUnit":250.0},{"id":26,"data":"2026-02-19","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Barro.","unid":"car","qtd":1.0,"valorUnit":380.0},{"id":27,"data":"2026-02-19","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Pedra.","unid":"car","qtd":0.5,"valorUnit":480.0},{"id":28,"data":"2026-02-20","fase":"2. Fundação e Alicerce","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":750.0},{"id":29,"data":"2026-02-23","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":43.0},{"id":30,"data":"2026-02-23","fase":"2. Fundação e Alicerce","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Treliça de aço 6m.","unid":"un","qtd":2.0,"valorUnit":45.0},{"id":31,"data":"2026-02-24","fase":"2. Fundação e Alicerce","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":5.0,"valorUnit":43.0},{"id":32,"data":"2026-02-25","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Areia.","unid":"m³","qtd":1.0,"valorUnit":110.0},{"id":33,"data":"2026-02-27","fase":"2. Fundação e Alicerce","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":450.0},{"id":34,"data":"2026-03-05","fase":"2. Fundação e Alicerce","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Aterro.","unid":"car","qtd":17.0,"valorUnit":180.0},{"id":35,"data":"2026-03-10","fase":"4. Alvenaria (Paredes)","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Bloco ceramico grande.","unid":"mil","qtd":6.5,"valorUnit":885.0},{"id":36,"data":"2026-03-11","fase":"4. Alvenaria (Paredes)","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":43.0},{"id":37,"data":"2026-03-11","fase":"4. Alvenaria (Paredes)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Treliça 6m.","unid":"un","qtd":4.0,"valorUnit":40.0},{"id":38,"data":"2026-03-11","fase":"4. Alvenaria (Paredes)","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Bloco ceramico pequeno.","unid":"mil","qtd":0.5,"valorUnit":800.0},{"id":39,"data":"2026-03-11","fase":"2. Fundação e Alicerce","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Canaleta larga.","unid":"un","qtd":65.0,"valorUnit":2.0},{"id":40,"data":"2026-03-13","fase":"4. Alvenaria (Paredes)","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":750.0},{"id":41,"data":"2026-03-17","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Madeiras","descricao":"Tabua de pinho 3m.","unid":"un","qtd":2.0,"valorUnit":50.0},{"id":42,"data":"2026-03-17","fase":"4. Alvenaria (Paredes)","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Areia.","unid":"m³","qtd":1.0,"valorUnit":120.0},{"id":43,"data":"2026-03-19","fase":"4. Alvenaria (Paredes)","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":20.0,"valorUnit":43.0},{"id":44,"data":"2026-03-20","fase":"4. Alvenaria (Paredes)","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1350.0},{"id":45,"data":"2026-03-23","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"01 pilar de 3m e 02 treliças 6m.","unid":"un","qtd":1.0,"valorUnit":180.0},{"id":46,"data":"2026-03-25","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Vergas para portas.","unid":"m","qtd":1.0,"valorUnit":704.0},{"id":47,"data":"2026-03-27","fase":"4. Alvenaria (Paredes)","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1300.0},{"id":48,"data":"2026-03-31","fase":"4. Alvenaria (Paredes)","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Areia.","unid":"m³","qtd":1.0,"valorUnit":120.0},{"id":49,"data":"2026-03-31","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Treliça 6m.","unid":"m","qtd":1.0,"valorUnit":40.0},{"id":50,"data":"2026-04-03","fase":"4. Alvenaria (Paredes)","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":650.0},{"id":51,"data":"2026-04-07","fase":"4. Alvenaria (Paredes)","categoria":"Cimento, Cal e Gesso","descricao":"Cimento.","unid":"sc","qtd":10.0,"valorUnit":44.0},{"id":52,"data":"2026-04-10","fase":"4. Alvenaria (Paredes)","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1500.0},{"id":53,"data":"2026-04-11","fase":"4. Alvenaria (Paredes)","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Calha de concreto pequena","unid":"un","qtd":280.0,"valorUnit":1.8},{"id":54,"data":"2026-04-11","fase":"4. Alvenaria (Paredes)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Vergalhão 3/8 10mm","unid":"un","qtd":8.0,"valorUnit":55.0},{"id":55,"data":"2026-04-11","fase":"4. Alvenaria (Paredes)","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Viga concreto 1,5m  treliça","unid":"un","qtd":1.0,"valorUnit":27.0},{"id":56,"data":"2026-04-11","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Coluna 5/16,  8mm, 6m.","unid":"un","qtd":1.0,"valorUnit":100.0},{"id":57,"data":"2026-04-11","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Coluna 3/8, 10mm, 7x17, com 6m.","unid":"un","qtd":3.0,"valorUnit":145.0},{"id":58,"data":"2026-04-13","fase":"4. Alvenaria (Paredes)","categoria":"Madeiras","descricao":"Tabua de pinus 27x 3m.","unid":"un","qtd":3.0,"valorUnit":48.0},{"id":59,"data":"2026-04-13","fase":"4. Alvenaria (Paredes)","categoria":"Madeiras","descricao":"Caibros de 3m.","unid":"m","qtd":18.0,"valorUnit":7.4},{"id":60,"data":"2026-04-17","fase":"4. Alvenaria (Paredes)","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1350.0},{"id":61,"data":"2026-04-17","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Cobertura (Telhas, Calhas)","descricao":"Pergolado 5cm.","unid":"m","qtd":20.0,"valorUnit":20.0},{"id":62,"data":"2026-04-17","fase":"4. Alvenaria (Paredes)","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Brita 5/8\"","unid":"m³","qtd":1.0,"valorUnit":300.0},{"id":63,"data":"2026-04-17","fase":"4. Alvenaria (Paredes)","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Areia lavada.","unid":"m³","qtd":1.0,"valorUnit":120.0},{"id":64,"data":"2026-04-17","fase":"4. Alvenaria (Paredes)","categoria":"Outros","descricao":"Carrinho de mão.","unid":"un","qtd":1.0,"valorUnit":280.0},{"id":65,"data":"2026-04-17","fase":"4. Alvenaria (Paredes)","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":15.0,"valorUnit":49.0},{"id":66,"data":"2026-04-20","fase":"4. Alvenaria (Paredes)","categoria":"Alvenaria (Tijolos, Blocos)","descricao":"Bloco ceramico pequeno.","unid":"un","qtd":100.0,"valorUnit":0.8},{"id":67,"data":"2026-04-24","fase":"4. Alvenaria (Paredes)","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":10750.0},{"id":68,"data":"2026-04-24","fase":"3. Estrutura (Colunas e Vigas)","categoria":"Ferragens (Vergalhão, Arame)","descricao":"Barra de ferro 10mm, c/ 6m.","unid":"un","qtd":2.0,"valorUnit":55.0},{"id":69,"data":"2026-04-27","fase":"7. Instalações Elétricas","categoria":"Elétrica (Fios, Disjuntores)","descricao":"Conduites e caixinhas de tomadas.","unid":"un","qtd":1.0,"valorUnit":135.0},{"id":70,"data":"2026-05-05","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":10.0,"valorUnit":49.0},{"id":71,"data":"2026-05-05","fase":"7. Instalações Elétricas","categoria":"Elétrica (Fios, Disjuntores)","descricao":"Material eletrico (mercado livre)","unid":"un","qtd":1.0,"valorUnit":907.0},{"id":72,"data":"2026-05-06","fase":"7. Instalações Elétricas","categoria":"Elétrica (Fios, Disjuntores)","descricao":"Material eletrico (Itabaiana)","unid":"un","qtd":1.0,"valorUnit":950.0},{"id":73,"data":"2026-05-06","fase":"7. Instalações Elétricas","categoria":"Elétrica (Fios, Disjuntores)","descricao":"Cabo 16mm - 35m (Shopee)","unid":"rlo","qtd":1.0,"valorUnit":666.0},{"id":74,"data":"2026-05-06","fase":"5. Telhado e Cobertura","categoria":"Madeiras","descricao":"Madeiras massaranduba(peças, caibros e ripas).","unid":"un","qtd":1.0,"valorUnit":7750.0},{"id":75,"data":"2026-05-06","fase":"5. Telhado e Cobertura","categoria":"Cobertura (Telhas, Calhas)","descricao":"Telha romana resinada","unid":"mil","qtd":2350.0,"valorUnit":2.76},{"id":76,"data":"2026-05-15","fase":"5. Telhado e Cobertura","categoria":"Cobertura (Telhas, Calhas)","descricao":"Cominheira telhas romana","unid":"un","qtd":100.0,"valorUnit":5.5},{"id":77,"data":"2026-05-22","fase":"5. Telhado e Cobertura","categoria":"Cobertura (Telhas, Calhas)","descricao":"Calha de aluminio (bica)","unid":"un","qtd":1.0,"valorUnit":1100.0},{"id":78,"data":"2026-05-29","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":5000.0},{"id":79,"data":"2026-05-29","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":10.0,"valorUnit":49.0},{"id":80,"data":"2026-06-01","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":10.0,"valorUnit":49.0},{"id":81,"data":"2026-06-08","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":10.0,"valorUnit":49.0},{"id":82,"data":"2026-06-12","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1000.0},{"id":83,"data":"2026-06-15","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":5.0,"valorUnit":49.0},{"id":84,"data":"2026-06-19","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":1500.0},{"id":85,"data":"2026-06-23","fase":"6. Instalações Hidráulicas","categoria":"Hidráulica (Tubos, Conexões)","descricao":"Compra de material para esgotamento sanitário.","unid":"un","qtd":1.0,"valorUnit":1800.0},{"id":86,"data":"2026-06-26","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pgt (200,00 Silvano); (300,00 Buchecha).","unid":"un","qtd":1.0,"valorUnit":500.0},{"id":87,"data":"2026-07-01","fase":"8. Reboco e Revestimento","categoria":"Agregados (Areia, Pedra, Barro)","descricao":"Argamassa AC3.","unid":"sc","qtd":4.0,"valorUnit":59.0},{"id":88,"data":"2026-07-03","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pagamento de mão de obra.","unid":"un","qtd":1.0,"valorUnit":600.0},{"id":89,"data":"2026-07-07","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":5.0,"valorUnit":48.0},{"id":90,"data":"2026-07-10","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pgt (600,00 Buchecha); (400,00 Rafinha).","unid":"un","qtd":1.0,"valorUnit":1000.0},{"id":91,"data":"2026-07-17","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":5.0,"valorUnit":48.0},{"id":92,"data":"2026-07-17","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pgt (500,00 Buchecha); (400,00 Rafinha).","unid":"un","qtd":1.0,"valorUnit":900.0},{"id":93,"data":"2026-07-24","fase":"8. Reboco e Revestimento","categoria":"Cimento, Cal e Gesso","descricao":"Cimento poty.","unid":"sc","qtd":5.0,"valorUnit":48.0},{"id":94,"data":"2026-07-24","fase":"8. Reboco e Revestimento","categoria":"Mão de Obra","descricao":"Pgt (450,00 Buchecha); (400,00 Rafinha).","unid":"un","qtd":1.0,"valorUnit":850.0}];
+const KEY="obra2026_v2";
+const CFG_KEY="obra2026_cfg";
+const PEND_KEY="obra2026_pending";
+
+let items=[];
+let syncUrl=localStorage.getItem(CFG_KEY)||"";
+let pending=[]; // fila de operações offline: {op:'add'|'update'|'delete', item?, id?}
+
+function loadLocal(){try{const s=localStorage.getItem(KEY);items=s?JSON.parse(s):structuredClone(SEED);}catch(e){items=structuredClone(SEED);}
+  try{pending=JSON.parse(localStorage.getItem(PEND_KEY))||[];}catch(e){pending=[];}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(items));localStorage.setItem(PEND_KEY,JSON.stringify(pending));}catch(e){}}
+loadLocal();
+
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtR=n=>"R$ "+fmt(n);
+const fmtShort=n=>{n=Math.round(n);return "R$ "+n.toLocaleString('pt-BR');};
+const total=it=>it.qtd*it.valorUnit;
+const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function parseDate(iso){const[y,m,d]=iso.split("-");return{y:+y,m:+m,d:+d};}
+function fmtDate(iso){const p=parseDate(iso);return String(p.d).padStart(2,'0')+"/"+String(p.m).padStart(2,'0');}
+function monthKey(iso){const p=parseDate(iso);return p.y*100+p.m;}
+function monthLabel(iso){const p=parseDate(iso);return MESES[p.m-1]+" · "+p.y;}
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600);}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtNum(n){return Number.isInteger(n)?n:n.toLocaleString('pt-BR',{maximumFractionDigits:3});}
+
+/* ---------- SYNC ---------- */
+function setSync(state,txt){const b=$("syncBadge");b.className="sync-badge"+(state?" "+state:"");$("syncTxt").textContent=txt;}
+function isPending(id){return pending.some(p=>(p.item&&p.item.id===id)||p.id===id);}
+
+async function apiGet(){
+  const r=await fetch(syncUrl,{method:"GET",redirect:"follow"});
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error||"resposta inválida");
+  return j.items;
+}
+// POST usa text/plain p/ evitar preflight CORS; Apps Script lê postData.contents
+async function apiPost(payload){
+  const r=await fetch(syncUrl,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error||"resposta inválida");
+  return j;
+}
+
+// Sincroniza: 1) sobe pendências  2) baixa estado da planilha
+async function fullSync(silent){
+  if(!syncUrl){if(!silent)toast("Configure a planilha primeiro");return;}
+  setSync("busy","Sincronizando");
+  try{
+    // sobe pendências em ordem. "add" e "update pendente" viram add
+    // (o id/linha é definido pela planilha), delete só se id for linha real.
+    for(const p of [...pending]){
+      if(p.op==="delete"){ if(typeof p.id==="number") await apiPost({action:"delete",id:p.id}); }
+      else if(p.op==="add") await apiPost({action:"add",item:p.item});
+      else await apiPost({action:"add",item:p.item}); // update offline de item novo -> add
+    }
+    pending=[];saveLocal();
+    // baixa verdade da planilha
+    const remote=await apiGet();
+    items=remote;
+    saveLocal();renderAll();
+    setSync("on","Sincronizado");
+    if(!silent)toast("Tudo sincronizado com a planilha");
+  }catch(e){
+    setSync("err","Erro");
+    if(!silent)toast("Falha: "+e.message);
+    renderAll();
+  }
+}
+
+// envia UMA operação; se falhar, guarda como pendência
+async function pushOp(op){
+  if(!syncUrl){saveLocal();return;} // modo local
+  setSync("busy","Enviando");
+  try{
+    if(op.op==="delete") await apiPost({action:"delete",id:op.id});
+    else await apiPost({action:op.op,item:op.item});
+    // rebaixa a verdade da planilha (ids = número da linha, definidos pelo servidor)
+    try{const remote=await apiGet();items=remote;saveLocal();}catch(_){}
+    setSync("on","Sincronizado");
+  }catch(e){
+    pending.push(op);saveLocal();
+    setSync("err","Pendente");
+    toast("Sem conexão — mudança salva como pendente");
+  }
+  renderAll();
+}
+
+/* ---------- render ---------- */
+function grandTotal(){return items.reduce((s,i)=>s+total(i),0);}
+function renderHero(){const g=grandTotal();const parts=fmt(g).split(",");$("heroTotal").innerHTML="R$ "+parts[0]+'<span class="cents">,'+parts[1]+'</span>';$("heroSub").textContent=items.length+" lançamento"+(items.length!=1?"s":"");}
+
+function renderLanc(){
+  const q=$("search").value.toLowerCase().trim();const ff=$("filterFase").value;
+  let list=items.filter(i=>{if(ff&&i.fase!==ff)return false;if(q&&!(i.descricao.toLowerCase().includes(q)||i.categoria.toLowerCase().includes(q)))return false;return true;});
+  list.sort((a,b)=>b.data.localeCompare(a.data)||b.id-a.id);
+  const np=$("pendingNote");np.innerHTML=pending.length?('<div class="pending-note">↑ '+pending.length+' mudança(s) pendente(s) de envio — toque em "Sincronizar agora" na aba Dados.</div>'):'';
+  const el=$("lancList");
+  if(!list.length){el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 12h16M4 17h10"/></svg><div>Nenhum lançamento encontrado.</div></div>';return;}
+  let html="",cur=null;
+  for(const i of list){
+    const mk=monthKey(i.data);if(mk!==cur){cur=mk;html+='<div class="month-lbl">'+monthLabel(i.data)+'</div>';}
+    const shortCat=i.categoria.replace(/\s*\(.*?\)/,'');const faseNum=i.fase.split(".")[0];
+    html+='<div class="card'+(isPending(i.id)?' pending':'')+'" data-id="'+i.id+'"><div class="card-top"><div class="card-desc">'+esc(i.descricao)+'</div><div class="card-total">'+fmtR(total(i))+'</div></div><div class="card-meta"><span class="card-date">'+fmtDate(i.data)+'</span><span class="chip fase">Fase '+faseNum+'</span><span class="chip">'+esc(shortCat)+'</span><span class="card-qty">'+fmtNum(i.qtd)+' '+i.unid+' × '+fmtR(i.valorUnit)+'</span></div></div>';
+  }
+  el.innerHTML=html;el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openEdit(+c.dataset.id));
+}
+function renderResumo(){
+  const g=grandTotal()||1;const mf={};FASES.forEach(f=>mf[f]=0);items.forEach(i=>{mf[i.fase]=(mf[i.fase]||0)+total(i);});
+  const faseArr=Object.entries(mf).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);const maxF=faseArr.length?faseArr[0][1]:1;
+  $("byFase").innerHTML=faseArr.map(([f,v])=>bar(f,v,v/maxF*100,g)).join("")||'<div class="empty">Sem dados</div>';
+  const mc={};items.forEach(i=>{mc[i.categoria]=(mc[i.categoria]||0)+total(i);});
+  const catArr=Object.entries(mc).sort((a,b)=>b[1]-a[1]);const maxC=catArr.length?catArr[0][1]:1;
+  $("byCat").innerHTML=catArr.map(([c,v])=>bar(c.replace(/\s*\(.*?\)/,''),v,v/maxC*100,g,true)).join("");
+}
+function bar(name,val,pct,g,b2){const share=(val/g*100).toFixed(1);return '<div class="bar-row"><div class="bar-head"><span class="bar-name">'+esc(name)+'</span><span class="bar-val">'+fmtR(val)+' · '+share+'%</span></div><div class="bar-track"><div class="bar-fill'+(b2?' b2':'')+'" style="width:'+pct+'%"></div></div></div>';}
+function renderDados(){const g=grandTotal();$("stCount").textContent=items.length;$("stFases").textContent=new Set(items.map(i=>i.fase)).size;$("stMedia").textContent=items.length?fmtShort(g/items.length):"R$ 0";$("stMaior").textContent=fmtShort(items.reduce((m,i)=>Math.max(m,total(i)),0));
+  const cs=$("cfgStatus");if(syncUrl){cs.className="cfg-status ok";cs.innerHTML='<b>Sincronização ativa</b> — conectado à sua planilha Google. Cada mudança sobe automaticamente.';}else{cs.className="cfg-status off";cs.innerHTML='<b>Modo local</b> — os dados ficam só neste aparelho. Configure a planilha para sincronizar.';}}
+function renderAll(){renderHero();renderLanc();renderResumo();renderDados();}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));t.classList.add("active");$("panel-"+t.dataset.tab).classList.add("active");window.scrollTo({top:0,behavior:"smooth"});});
+
+/* ---------- selects ---------- */
+function fillSelect(sel,arr,pairs){sel.innerHTML="";(pairs?arr:arr.map(a=>[a,a])).forEach(([v,l])=>{const o=document.createElement("option");o.value=v;o.textContent=l;sel.appendChild(o);});}
+fillSelect($("fFase"),FASES);fillSelect($("fCat"),CATS);fillSelect($("fUnid"),UNIDS,true);
+const ffs=$("filterFase");FASES.forEach(f=>{const o=document.createElement("option");o.value=f;o.textContent="Fase "+f.split(".")[0];ffs.appendChild(o);});
+
+/* ---------- modal lançamento ---------- */
+let editId=null;
+function openAdd(){editId=null;$("modalTitle").textContent="Novo lançamento";$("fDesc").value="";$("fData").value=new Date().toISOString().slice(0,10);$("fUnid").value="un";$("fFase").value=FASES[1];$("fCat").value=CATS[0];$("fQtd").value="1";$("fVU").value="";$("btnDelete").style.display="none";updateCalc();showModal();}
+function openEdit(id){const it=items.find(i=>i.id===id);if(!it)return;editId=id;$("modalTitle").textContent="Editar lançamento";$("fDesc").value=it.descricao;$("fData").value=it.data;$("fUnid").value=it.unid;$("fFase").value=it.fase;$("fCat").value=it.categoria;$("fQtd").value=fmtNum(it.qtd);$("fVU").value=fmt(it.valorUnit);$("btnDelete").style.display="block";updateCalc();showModal();}
+function showModal(){$("modalBg").classList.add("show");document.body.style.overflow="hidden";}
+function hideModal(){$("modalBg").classList.remove("show");document.body.style.overflow="";}
+function pnum(v){if(!v)return 0;v=(""+v).replace(/\./g,'').replace(',','.');const n=parseFloat(v);return isNaN(n)?0:n;}
+function updateCalc(){$("calcTotal").textContent=fmtR(pnum($("fQtd").value)*pnum($("fVU").value));}
+$("fQtd").oninput=updateCalc;$("fVU").oninput=updateCalc;
+$("fabAdd").onclick=openAdd;$("btnCancel").onclick=hideModal;
+$("modalBg").onclick=e=>{if(e.target===$("modalBg"))hideModal();};
+
+$("btnSave").onclick=async()=>{
+  const desc=$("fDesc").value.trim();const qtd=pnum($("fQtd").value),vu=pnum($("fVU").value);
+  if(!desc){toast("Informe a descrição");$("fDesc").focus();return;}
+  if(qtd<=0){toast("Quantidade inválida");return;}
+  if(vu<=0){toast("Valor inválido");return;}
+  const obj={data:$("fData").value,fase:$("fFase").value,categoria:$("fCat").value,descricao:desc,unid:$("fUnid").value,qtd,valorUnit:vu};
+  if(editId){Object.assign(items.find(i=>i.id===editId),obj);obj.id=editId;saveLocal();renderAll();hideModal();toast("Atualizado");pushOp({op:"update",item:{...obj,id:editId}});}
+  else{obj.id=(items.reduce((m,i)=>Math.max(m,i.id),0)||0)+1;items.push(obj);saveLocal();renderAll();hideModal();toast("Adicionado");pushOp({op:"add",item:{...obj}});}
+};
+$("btnDelete").onclick=async()=>{if(!editId)return;if(confirm("Excluir este lançamento?")){const id=editId;items=items.filter(i=>i.id!==id);saveLocal();renderAll();hideModal();toast("Excluído");pushOp({op:"delete",id});}};
+
+$("search").oninput=renderLanc;$("filterFase").onchange=renderLanc;
+
+/* ---------- config sync ---------- */
+function openCfg(){$("cfgUrl").value=syncUrl;$("cfgClear").style.display=syncUrl?"block":"none";$("cfgBg").classList.add("show");document.body.style.overflow="hidden";}
+function hideCfg(){$("cfgBg").classList.remove("show");document.body.style.overflow="";}
+$("btnConfig").onclick=openCfg;$("cfgCancel").onclick=hideCfg;
+$("cfgBg").onclick=e=>{if(e.target===$("cfgBg"))hideCfg();};
+$("cfgSave").onclick=async()=>{
+  const u=$("cfgUrl").value.trim();
+  if(!/^https:\/\/script\.google\.com\/.*\/exec$/.test(u)){toast("URL inválida (deve terminar em /exec)");return;}
+  syncUrl=u;localStorage.setItem(CFG_KEY,u);hideCfg();
+  toast("Testando conexão...");
+  // Primeira sincronização: pergunta se envia os dados locais ou puxa da planilha
+  setSync("busy","Conectando");
+  try{
+    const remote=await apiGet();
+    if(remote.length===0 && items.length>0){
+      if(confirm("A planilha está vazia. Enviar os "+items.length+" lançamentos atuais do app para ela?")){
+        await apiPost({action:"replaceAll",items:items});
+        toast("Planilha populada com seus dados");
+      }
+    }else{
+      // planilha tem dados: ela é a fonte da verdade
+      items=remote;saveLocal();
+      toast("Conectado — "+remote.length+" lançamentos carregados da planilha");
+    }
+    pending=[];saveLocal();renderAll();setSync("on","Sincronizado");
+  }catch(e){setSync("err","Erro");toast("Não conectou: "+e.message);}
+};
+$("cfgClear").onclick=()=>{if(confirm("Desativar a sincronização? O app volta ao modo local (dados só neste aparelho).")){syncUrl="";localStorage.removeItem(CFG_KEY);hideCfg();setSync("","Local");renderAll();toast("Sincronização desativada");}};
+$("btnSyncNow").onclick=()=>fullSync(false);
+
+/* ---------- data mgmt ---------- */
+$("btnExport").onclick=()=>{let csv="Data;Fase;Categoria;Descrição;Unid;Qtd;Valor Unit;Total\n";[...items].sort((a,b)=>a.data.localeCompare(b.data)).forEach(i=>{const p=parseDate(i.data);const d=String(p.d).padStart(2,'0')+"/"+String(p.m).padStart(2,'0')+"/"+p.y;csv+=[d,i.fase,i.categoria,i.descricao,i.unid,fmtNum(i.qtd),fmt(i.valorUnit),fmt(total(i))].map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(";")+"\n";});dl(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),"obra_lancamentos.csv");toast("CSV exportado");};
+$("btnBackup").onclick=()=>{dl(new Blob([JSON.stringify(items,null,1)],{type:"application/json"}),"obra_backup.json");toast("Backup gerado");};
+$("btnImport").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d))throw 0;items=d.map((x,k)=>({id:x.id||k+1,data:x.data,fase:x.fase,categoria:x.categoria,descricao:x.descricao,unid:x.unid,qtd:+x.qtd,valorUnit:+x.valorUnit}));saveLocal();renderAll();toast("Backup restaurado (lembre de sincronizar)");}catch(err){toast("Arquivo inválido");}};r.readAsText(f);e.target.value="";};
+$("btnReset").onclick=()=>{if(confirm("Isto apaga os lançamentos locais e recarrega os 94 originais. (Não afeta a planilha até sincronizar.) Continuar?")){items=structuredClone(SEED);pending=[];saveLocal();renderAll();toast("Planilha original restaurada localmente");}};
+function dl(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+
+/* ---------- init ---------- */
+$("syncBadge").onclick=()=>{document.querySelector('.tab[data-tab="dados"]').click();};
+if(syncUrl){setSync("on","Sincronizado");renderAll();fullSync(true);}else{setSync("","Local");renderAll();}
+
+if('serviceWorker' in navigator){const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
+</script>
+</body>
+</html>
