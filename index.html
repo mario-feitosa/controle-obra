@@ -272,10 +272,17 @@ const fmtR=n=>"R$ "+fmt(n);
 const fmtShort=n=>{n=Math.round(n);return "R$ "+n.toLocaleString('pt-BR');};
 const total=it=>it.qtd*it.valorUnit;
 const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-function parseDate(iso){const[y,m,d]=iso.split("-");return{y:+y,m:+m,d:+d};}
-function fmtDate(iso){const p=parseDate(iso);return String(p.d).padStart(2,'0')+"/"+String(p.m).padStart(2,'0');}
-function monthKey(iso){const p=parseDate(iso);return p.y*100+p.m;}
-function monthLabel(iso){const p=parseDate(iso);return MESES[p.m-1]+" · "+p.y;}
+function parseDate(iso){
+  if(!iso)return{y:NaN,m:NaN,d:NaN};
+  iso=String(iso).trim();
+  if(iso.includes("/")){ // formato BR: DD/MM/YYYY
+    const[d,m,y]=iso.split("/");return{y:+y,m:+m,d:+d};
+  }
+  const[y,m,d]=iso.split("-");return{y:+y,m:+m,d:+String(d).slice(0,2)}; // slice corta hora tipo "16T00:00:00.000Z"
+}
+function fmtDate(iso){const p=parseDate(iso);if(isNaN(p.d)||isNaN(p.m))return"sem data";return String(p.d).padStart(2,'0')+"/"+String(p.m).padStart(2,'0');}
+function monthKey(iso){const p=parseDate(iso);if(isNaN(p.y)||isNaN(p.m))return -1;return p.y*100+p.m;} // sem data agrupa junto, no fim da lista (ordenação desc)
+function monthLabel(iso){const p=parseDate(iso);if(isNaN(p.m)||isNaN(p.y))return"Sem data — preencha na planilha";return MESES[p.m-1]+" · "+p.y;}
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600);}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function fmtNum(n){return Number.isInteger(n)?n:n.toLocaleString('pt-BR',{maximumFractionDigits:3});}
@@ -284,11 +291,19 @@ function fmtNum(n){return Number.isInteger(n)?n:n.toLocaleString('pt-BR',{maximu
 function setSync(state,txt){const b=$("syncBadge");b.className="sync-badge"+(state?" "+state:"");$("syncTxt").textContent=txt;}
 function isPending(id){return pending.some(p=>(p.item&&p.item.id===id)||p.id===id);}
 
+function toISODate(v){ // aceita ISO (com/sem hora) ou BR "DD/MM/YYYY" e devolve sempre "YYYY-MM-DD"
+  if(!v)return v;
+  v=String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(v))return v.slice(0,10);
+  const m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return m[3]+"-"+m[2].padStart(2,'0')+"-"+m[1].padStart(2,'0');
+  return v;
+}
 async function apiGet(){
   const r=await fetch(syncUrl,{method:"GET",redirect:"follow"});
   const j=await r.json();
   if(!j.ok)throw new Error(j.error||"resposta inválida");
-  return j.items;
+  return j.items.map(i=>({...i,data:toISODate(i.data)}));
 }
 // POST usa text/plain p/ evitar preflight CORS; Apps Script lê postData.contents
 async function apiPost(payload){
